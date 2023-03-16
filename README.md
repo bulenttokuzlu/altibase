@@ -37,3 +37,16 @@ func main() {
     // do somethings
 }
 ```
+
+
+
+
+
+go clean -modcache
+go mod tidy
+
+
+
+
+
+go mod init github.com/bulenttokuzlu/altibase
