@@ -2,6 +2,7 @@ package altibase
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"reflect"
 
@@ -134,7 +135,8 @@ func Create(db *gorm.DB) {
 							func(field *gormSchema.Field) {
 								switch insertTo.Kind() {
 								case reflect.Struct:
-									if err = field.Set(insertTo, stmt.Vars[boundVars[field.Name]].(sql.Out).Dest); err != nil {
+									ctx := context.Background()
+									if err = field.Set(ctx, insertTo, stmt.Vars[boundVars[field.Name]].(sql.Out).Dest); err != nil {
 										db.AddError(err)
 									}
 								case reflect.Map:
