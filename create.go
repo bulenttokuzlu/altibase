@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"reflect"
 
-	"github.com/thoas/go-funk"
+	funk "github.com/thoas/go-funk"
 	"gorm.io/gorm"
 	"gorm.io/gorm/callbacks"
 	"gorm.io/gorm/clause"
