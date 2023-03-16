@@ -1,4 +1,4 @@
-module github.com/cengsin/oracle
+module github.com/bulenttokuzlu/altibase
 
 go 1.14
 

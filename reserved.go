@@ -1,4 +1,4 @@
-package oracle
+package altibase
 
 import (
 	"github.com/emirpasic/gods/sets/hashset"

@@ -1,4 +1,4 @@
-package oracle
+package altibase
 
 import (
 	"fmt"

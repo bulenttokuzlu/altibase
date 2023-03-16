@@ -1,4 +1,4 @@
-package oracle
+package altibase
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm/clause"
 	gormSchema "gorm.io/gorm/schema"
 
-	"github.com/cengsin/oracle/clauses"
+	"github.com/bulenttokuzlu/altibase/clauses"
 )
 
 func Create(db *gorm.DB) {
@@ -111,7 +111,7 @@ func Create(db *gorm.DB) {
 				// and then we insert each row one by one then put the returning values back (i.e. last return id => smart insert)
 				// we keep track of the index so that the sub-reflected value is also correct
 
-				// BIG BUG: what if any of the transactions failed? some result might already be inserted that oracle is so
+				// BIG BUG: what if any of the transactions failed? some result might already be inserted that altibase is so
 				// sneaky that some transaction inserts will exceed the buffer and so will be pushed at unknown point,
 				// resulting in dangling row entries, so we might need to delete them if an error happens
 

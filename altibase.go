@@ -1,4 +1,4 @@
-package oracle
+package altibase
 
 import (
 	"database/sql"
@@ -42,7 +42,7 @@ func (d Dialector) DummyTableName() string {
 }
 
 func (d Dialector) Name() string {
-	return "oracle"
+	return "altibase"
 }
 
 func (d Dialector) Initialize(db *gorm.DB) (err error) {
