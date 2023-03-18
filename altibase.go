@@ -8,8 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	_ "github.com/bsshin71/alticli"
-	"github.com/thoas/go-funk"
+	_ "github.com/bulenttokuzlu/alticli"
 	"gorm.io/gorm"
 	"gorm.io/gorm/callbacks"
 	"gorm.io/gorm/clause"
