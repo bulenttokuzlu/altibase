@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	_ "github.com/bulenttokuzlu/alticli"
 	funk "github.com/thoas/go-funk"
@@ -129,6 +130,10 @@ func (d Dialector) BindVarTo(writer clause.Writer, stmt *gorm.Statement, v inter
 	str := ""
 	for i, v := range stmt.Vars {
 		switch v.(type) {
+		case time.Time:
+			s := fmt.Sprintf("%v", v)
+			s = string([]byte(s)[:19])
+			writer.WriteString(fmt.Sprintf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')", s))
 		case string:
 			writer.WriteString(fmt.Sprintf("'%v'", v))
 			str = fmt.Sprintf("%v'%v'", str, v)
