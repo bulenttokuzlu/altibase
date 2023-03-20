@@ -92,16 +92,17 @@ func (d Dialector) RewriteLimit(c clause.Clause, builder clause.Builder) {
 				}
 			}
 		}
-
-		if offset := limit.Offset; offset > 0 {
-			builder.WriteString(" OFFSET ")
-			builder.WriteString(strconv.Itoa(offset))
-			builder.WriteString(" ROWS")
+		o := limit.Offset
+		l := limit.Limit
+		if o > 0 {
+			builder.WriteString(" LIMIT ")
+			builder.WriteString(strconv.Itoa(o))
+			builder.WriteString(" , ")
+			builder.WriteString(strconv.Itoa(*l))
 		}
-		if limit := limit.Limit; *limit > 0 {
-			builder.WriteString(" FETCH NEXT ")
-			builder.WriteString(strconv.Itoa(*limit))
-			builder.WriteString(" ROWS ONLY")
+		if o == 0 && *l > 0 {
+			builder.WriteString(" LIMIT ")
+			builder.WriteString(strconv.Itoa(*l))
 		}
 	}
 }
