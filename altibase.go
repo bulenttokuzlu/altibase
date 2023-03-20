@@ -1,7 +1,9 @@
 package altibase
 
+import "C"
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"gorm.io/gorm/utils"
 	"regexp"
@@ -124,8 +126,26 @@ func (d Dialector) Migrator(db *gorm.DB) gorm.Migrator {
 }
 
 func (d Dialector) BindVarTo(writer clause.Writer, stmt *gorm.Statement, v interface{}) {
-	writer.WriteString(":")
-	writer.WriteString(strconv.Itoa(len(stmt.Vars)))
+	str := ""
+	for i, v := range stmt.Vars {
+		switch v.(type) {
+		case string:
+			writer.WriteString(fmt.Sprintf("'%v'", v))
+			str = fmt.Sprintf("%v'%v'", str, v)
+		default:
+			writer.WriteString(fmt.Sprintf("%v", v))
+			str = fmt.Sprintf("%v%v", str, v)
+		}
+		if i != len(stmt.Vars)-1 {
+			writer.WriteString(",")
+			str = fmt.Sprintf("%v,", str)
+		}
+	}
+	varStr, _ := json.Marshal(stmt.Vars)
+	fmt.Println("varStr=", string(varStr))
+	fmt.Println("str=", str)
+	//	writer.WriteString(":")
+	//	writer.WriteString(strconv.Itoa(len(stmt.Vars)))
 }
 
 func (d Dialector) QuoteTo(writer clause.Writer, str string) {
