@@ -15,7 +15,7 @@ type Migrator struct {
 
 func (m Migrator) CurrentDatabase() (name string) {
 	m.DB.Raw(
-		fmt.Sprintf(`SELECT ORA_DATABASE_NAME as "Current Database" FROM %s`, m.Dialector.(Dialector).DummyTableName()),
+		fmt.Sprint(`SELECT db_name as "Current Database" FROM v$database`),
 	).Row().Scan(&name)
 	return
 }
@@ -48,7 +48,7 @@ func (m Migrator) HasTable(value interface{}) bool {
 	var count int64
 
 	m.RunWithValue(value, func(stmt *gorm.Statement) error {
-		return m.DB.Raw("SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME = ?", stmt.Table).Row().Scan(&count)
+		return m.DB.Raw("SELECT count(*) FROM system_.sys_users_ a JOIN system_.sys_tables_ b ON a.user_id = b.user_id WHERE a.user_name=user_name() AND b.table_name=?", stmt.Table).Row().Scan(&count)
 	})
 
 	return count > 0
@@ -138,7 +138,7 @@ func (m Migrator) AlterColumn(value interface{}, field string) error {
 func (m Migrator) HasColumn(value interface{}, field string) bool {
 	var count int64
 	return m.RunWithValue(value, func(stmt *gorm.Statement) error {
-		return m.DB.Raw("SELECT COUNT(*) FROM USER_TAB_COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = ?", stmt.Table, field).Row().Scan(&count)
+		return m.DB.Raw("SELECT COUNT (*) FROM system_.sys_columns_ a, system_.sys_tables_ b, system_.sys_users_ c WHERE a.table_id = b.table_id AND b.user_id = c.user_id AND a.is_hidden = 'F' AND b.table_type = 'T' AND c.user_name = user_name() AND b.table_name = ? AND a.column_name = ?", stmt.Table, field).Row().Scan(&count)
 	}) == nil && count > 0
 }
 
@@ -149,14 +149,14 @@ func (m Migrator) CreateConstraint(value interface{}, name string) error {
 
 func (m Migrator) DropConstraint(value interface{}, name string) error {
 	return m.RunWithValue(value, func(stmt *gorm.Statement) error {
-		for _, chk := range stmt.Schema.ParseCheckConstraints() {
+		/*for _, chk := range stmt.Schema.ParseCheckConstraints() {
 			if chk.Name == name {
 				return m.DB.Exec(
 					"ALTER TABLE ? DROP CHECK ?",
 					clause.Table{Name: stmt.Table}, clause.Column{Name: name},
 				).Error
 			}
-		}
+		}*/
 
 		return m.DB.Exec(
 			"ALTER TABLE ? DROP CONSTRAINT ?",
@@ -169,7 +169,7 @@ func (m Migrator) HasConstraint(value interface{}, name string) bool {
 	var count int64
 	return m.RunWithValue(value, func(stmt *gorm.Statement) error {
 		return m.DB.Raw(
-			"SELECT COUNT(*) FROM USER_CONSTRAINTS WHERE TABLE_NAME = ? AND CONSTRAINT_NAME = ?", stmt.Table, name,
+			"SELECT COUNT (*) FROM system_.sys_constraints_ a, system_.sys_tables_ b, system_.sys_users_ c WHERE a.table_id = b.table_id AND b.user_id = c.user_id AND b.table_type = 'T' AND c.user_name = user_name() AND b.table_name = ? AND a.constraint_name = ?", stmt.Table, name,
 		).Row().Scan(&count)
 	}) == nil && count > 0
 }
@@ -192,7 +192,7 @@ func (m Migrator) HasIndex(value interface{}, name string) bool {
 		}
 
 		return m.DB.Raw(
-			"SELECT COUNT(*) FROM USER_INDEXES WHERE TABLE_NAME = ? AND INDEX_NAME = ?",
+			"SELECT COUNT (*) FROM system_.sys_indices_ a, system_.sys_tables_ b, system_.sys_users_ c WHERE a.table_id = b.table_id AND b.user_id = c.user_id AND b.table_type = 'T' AND c.user_name = user_name() AND b.table_name = ? AND a.index_name = ?",
 			m.Migrator.DB.NamingStrategy.TableName(stmt.Table),
 			m.Migrator.DB.NamingStrategy.IndexName(stmt.Table, name),
 		).Row().Scan(&count)

@@ -81,7 +81,7 @@ func Create(db *gorm.DB) {
 					}).([]clause.Column),
 				})
 			}
-			stmt.Build("INSERT", "VALUES", "RETURNING")
+			stmt.Build("INSERT", "VALUES", "RETURN")
 			if hasDefaultValues {
 				stmt.WriteString(" INTO ")
 				for idx, field := range schema.FieldsWithDefaultDBValue {

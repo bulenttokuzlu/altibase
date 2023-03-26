@@ -5,12 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm/utils"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
-
 	_ "github.com/bulenttokuzlu/alticli"
 	funk "github.com/thoas/go-funk"
 	"gorm.io/gorm"
@@ -19,6 +13,11 @@ import (
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/migrator"
 	"gorm.io/gorm/schema"
+	"gorm.io/gorm/utils"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type Config struct {
@@ -63,9 +62,9 @@ func (d Dialector) Initialize(db *gorm.DB) (err error) {
 		db.ConnPool, err = sql.Open(d.DriverName, d.DSN)
 	}
 
-	if err = db.Callback().Create().Replace("gorm:create", Create); err != nil {
-		return
-	}
+	//	if err = db.Callback().Create().Replace("gorm:create", Create); err != nil {
+	//		return
+	//	}
 
 	for k, v := range d.ClauseBuilders() {
 		db.ClauseBuilders[k] = v
@@ -129,15 +128,19 @@ func (d Dialector) Migrator(db *gorm.DB) gorm.Migrator {
 func (d Dialector) BindVarTo(writer clause.Writer, stmt *gorm.Statement, v interface{}) {
 	str := ""
 	for i, v := range stmt.Vars {
+		fmt.Printf("v=%T\n", v)
 		switch v.(type) {
 		case time.Time:
-			s := fmt.Sprintf("%v", v)
-			s = string([]byte(s)[:19])
-			writer.WriteString(fmt.Sprintf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')", s))
+			fmt.Printf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')\n", v.(time.Time).Format("2006-01-02 15:04:05"))
+			writer.WriteString(fmt.Sprintf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')", v.(time.Time).Format("2006-01-02 15:04:05")))
+			str = fmt.Sprintf("%v%v", str, fmt.Sprintf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')", v.(time.Time).Format("2006-01-02 15:04:05")))
 		case string:
+			fmt.Printf("'%v'\n", v)
 			writer.WriteString(fmt.Sprintf("'%v'", v))
+			fmt.Sprintf("'%v'", v)
 			str = fmt.Sprintf("%v'%v'", str, v)
 		default:
+			fmt.Printf("%v\n", v)
 			writer.WriteString(fmt.Sprintf("%v", v))
 			str = fmt.Sprintf("%v%v", str, v)
 		}
@@ -149,8 +152,8 @@ func (d Dialector) BindVarTo(writer clause.Writer, stmt *gorm.Statement, v inter
 	varStr, _ := json.Marshal(stmt.Vars)
 	fmt.Println("varStr=", string(varStr))
 	fmt.Println("str=", str)
-	//	writer.WriteString(":")
-	//	writer.WriteString(strconv.Itoa(len(stmt.Vars)))
+	//writer.WriteString(":t")
+	//writer.WriteString(strconv.Itoa(len(stmt.Vars)))
 }
 
 func (d Dialector) QuoteTo(writer clause.Writer, str string) {
