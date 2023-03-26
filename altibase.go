@@ -152,6 +152,7 @@ func (d Dialector) BindVarTo(writer clause.Writer, stmt *gorm.Statement, v inter
 	varStr, _ := json.Marshal(stmt.Vars)
 	fmt.Println("varStr=", string(varStr))
 	fmt.Println("str=", str)
+	fmt.Println("len(stmt.Vars)=", len(stmt.Vars))
 	//writer.WriteString(":t")
 	//writer.WriteString(strconv.Itoa(len(stmt.Vars)))
 }
