@@ -129,28 +129,28 @@ func (d Dialector) BindVarTo(writer clause.Writer, stmt *gorm.Statement, v inter
 	fmt.Printf("v=%v=%T\n", v, v)
 
 	str := ""
-	for i, v := range stmt.Vars {
-		fmt.Printf("v=%T\n", v)
-		switch v.(type) {
-		case time.Time:
-			fmt.Printf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')\n", v.(time.Time).Format("2006-01-02 15:04:05"))
-			writer.WriteString(fmt.Sprintf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')", v.(time.Time).Format("2006-01-02 15:04:05")))
-			str = fmt.Sprintf("%v%v", str, fmt.Sprintf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')", v.(time.Time).Format("2006-01-02 15:04:05")))
-		case string:
-			fmt.Printf("'%v'\n", v)
-			writer.WriteString(fmt.Sprintf("'%v'", v))
-			fmt.Sprintf("'%v'", v)
-			str = fmt.Sprintf("%v'%v'", str, v)
-		default:
-			fmt.Printf("%v\n", v)
-			writer.WriteString(fmt.Sprintf("%v", v))
-			str = fmt.Sprintf("%v%v", str, v)
-		}
-		if i != len(stmt.Vars)-1 {
-			writer.WriteString(",")
-			str = fmt.Sprintf("%v,", str)
-		}
+	//for i, v := range stmt.Vars {
+	fmt.Printf("v=%T\n", v)
+	switch v.(type) {
+	case time.Time:
+		fmt.Printf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')\n", v.(time.Time).Format("2006-01-02 15:04:05"))
+		writer.WriteString(fmt.Sprintf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')", v.(time.Time).Format("2006-01-02 15:04:05")))
+		str = fmt.Sprintf("%v%v", str, fmt.Sprintf("TO_DATE('%v','YYYY-MM-DD HH24:MI:SS')", v.(time.Time).Format("2006-01-02 15:04:05")))
+	case string:
+		fmt.Printf("'%v'\n", v)
+		writer.WriteString(fmt.Sprintf("'%v'", v))
+		fmt.Sprintf("'%v'", v)
+		str = fmt.Sprintf("%v'%v'", str, v)
+	default:
+		fmt.Printf("%v\n", v)
+		writer.WriteString(fmt.Sprintf("%v", v))
+		str = fmt.Sprintf("%v%v", str, v)
 	}
+	//		if i != len(stmt.Vars)-1 {
+	//			writer.WriteString(",")
+	//			str = fmt.Sprintf("%v,", str)
+	//		}
+	//	}
 	varStr, _ := json.Marshal(stmt.Vars)
 	fmt.Println("varStr=", string(varStr))
 	fmt.Println("str=", str)
