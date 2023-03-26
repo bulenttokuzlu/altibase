@@ -126,6 +126,8 @@ func (d Dialector) Migrator(db *gorm.DB) gorm.Migrator {
 }
 
 func (d Dialector) BindVarTo(writer clause.Writer, stmt *gorm.Statement, v interface{}) {
+	fmt.Printf("v=%v=%T\n", v, v)
+
 	str := ""
 	for i, v := range stmt.Vars {
 		fmt.Printf("v=%T\n", v)
