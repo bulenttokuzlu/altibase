@@ -3,7 +3,7 @@ module github.com/bulenttokuzlu/altibase
 go 1.19
 
 require (
-	github.com/bulenttokuzlu/alticli v0.0.0-20230327040833-2e76f6007240
+	github.com/bulenttokuzlu/alticli v0.0.0-20230327190139-5a1357e4db1c
 	github.com/emirpasic/gods v1.18.1
 	github.com/thoas/go-funk v0.9.3
 	gorm.io/gorm v1.24.6
