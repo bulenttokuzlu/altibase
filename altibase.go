@@ -144,7 +144,6 @@ func (d Dialector) QuoteTo(writer clause.Writer, str string) {
 var numericPlaceholder = regexp.MustCompile(`:(\d+)`)
 
 func (d Dialector) Explain(sql string, vars ...interface{}) string {
-	fmt.Println("Explain - ahanda burası")
 	return logger.ExplainSQL(sql, numericPlaceholder, `'`, funk.Map(vars, func(v interface{}) interface{} {
 		switch v := v.(type) {
 		case bool:
