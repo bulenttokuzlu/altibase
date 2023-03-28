@@ -75,7 +75,7 @@ func Create(db *gorm.DB) {
 			stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
 			stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
 
-			/*if hasDefaultValues {
+			if hasDefaultValues {
 				stmt.AddClauseIfNotExists(clause.Returning{
 					Columns: funk.Map(schema.FieldsWithDefaultDBValue, func(field *gormSchema.Field) clause.Column {
 						return clause.Column{Name: field.DBName}
@@ -92,7 +92,7 @@ func Create(db *gorm.DB) {
 					boundVars[field.Name] = len(stmt.Vars)
 					stmt.AddVar(stmt, sql.Out{Dest: reflect.New(field.FieldType).Interface()})
 				}
-			}*/
+			}
 		}
 
 		if !db.DryRun {
