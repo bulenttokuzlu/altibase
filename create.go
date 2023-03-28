@@ -90,7 +90,8 @@ func Create(db *gorm.DB) {
 				})
 			}
 			fmt.Println("5-", stmt.SQL.String())
-			stmt.Build("INSERT", "VALUES", "RETURNING")
+			stmt.Build("INSERT", "VALUES")
+			//			stmt.Build("INSERT", "VALUES", "RETURNING")
 			fmt.Println("6-", stmt.SQL.String())
 			if hasDefaultValues {
 				stmt.WriteString(" INTO ")
