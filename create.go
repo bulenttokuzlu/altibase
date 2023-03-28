@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"fmt"
 	"reflect"
 
 	funk "github.com/thoas/go-funk"
@@ -20,6 +21,8 @@ func Create(db *gorm.DB) {
 	schema := stmt.Schema
 	boundVars := make(map[string]int)
 
+	fmt.Println("1-", stmt.SQL.String())
+
 	if stmt == nil || schema == nil {
 		return
 	}
@@ -31,6 +34,8 @@ func Create(db *gorm.DB) {
 			stmt.AddClause(c)
 		}
 	}
+
+	fmt.Println("2-", stmt.SQL.String())
 
 	if stmt.SQL.String() == "" {
 		values := callbacks.ConvertToCreateValues(stmt)
@@ -73,7 +78,9 @@ func Create(db *gorm.DB) {
 			stmt.Build("MERGE", "WHEN MATCHED", "WHEN NOT MATCHED")
 		} else {
 			stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
+			fmt.Println("3-", stmt.SQL.String())
 			stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
+			fmt.Println("4-", stmt.SQL.String())
 
 			if hasDefaultValues {
 				stmt.AddClauseIfNotExists(clause.Returning{
@@ -82,6 +89,7 @@ func Create(db *gorm.DB) {
 					}).([]clause.Column),
 				})
 			}
+			fmt.Println("5-", stmt.SQL.String())
 			stmt.Build("INSERT", "VALUES", "RETURNING")
 			if hasDefaultValues {
 				stmt.WriteString(" INTO ")
@@ -93,6 +101,7 @@ func Create(db *gorm.DB) {
 					stmt.AddVar(stmt, sql.Out{Dest: reflect.New(field.FieldType).Interface()})
 				}
 			}
+			fmt.Println("6-", stmt.SQL.String())
 		}
 
 		if !db.DryRun {
