@@ -93,7 +93,7 @@ func Create(db *gorm.DB) {
 			stmt.Build("INSERT", "VALUES")
 			//			stmt.Build("INSERT", "VALUES", "RETURNING")
 			fmt.Println("6-", stmt.SQL.String())
-			if hasDefaultValues {
+			/*if hasDefaultValues {
 				stmt.WriteString(" INTO ")
 				fmt.Println("6.1-", stmt.SQL.String())
 				for idx, field := range schema.FieldsWithDefaultDBValue {
@@ -105,7 +105,7 @@ func Create(db *gorm.DB) {
 					stmt.AddVar(stmt, sql.Out{Dest: reflect.New(field.FieldType).Interface()})
 					fmt.Println("6.3-", stmt.SQL.String())
 				}
-			}
+			}*/
 			fmt.Println("7-", stmt.SQL.String())
 		}
 
