@@ -74,24 +74,25 @@ func Create(db *gorm.DB) {
 		} else {
 			stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
 			stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
-			if hasDefaultValues {
-				stmt.AddClauseIfNotExists(clause.Returning{
-					Columns: funk.Map(schema.FieldsWithDefaultDBValue, func(field *gormSchema.Field) clause.Column {
-						return clause.Column{Name: field.DBName}
-					}).([]clause.Column),
-				})
-			}
-			/*stmt.Build("INSERT", "VALUES", "RETURNING")
-			if hasDefaultValues {
-				stmt.WriteString(" INTO ")
-				for idx, field := range schema.FieldsWithDefaultDBValue {
-					if idx > 0 {
-						stmt.WriteByte(',')
-					}
-					boundVars[field.Name] = len(stmt.Vars)
-					stmt.AddVar(stmt, sql.Out{Dest: reflect.New(field.FieldType).Interface()})
+			/*
+				if hasDefaultValues {
+					stmt.AddClauseIfNotExists(clause.Returning{
+						Columns: funk.Map(schema.FieldsWithDefaultDBValue, func(field *gormSchema.Field) clause.Column {
+							return clause.Column{Name: field.DBName}
+						}).([]clause.Column),
+					})
 				}
-			}*/
+				stmt.Build("INSERT", "VALUES", "RETURNING")
+				if hasDefaultValues {
+					stmt.WriteString(" INTO ")
+					for idx, field := range schema.FieldsWithDefaultDBValue {
+						if idx > 0 {
+							stmt.WriteByte(',')
+						}
+						boundVars[field.Name] = len(stmt.Vars)
+						stmt.AddVar(stmt, sql.Out{Dest: reflect.New(field.FieldType).Interface()})
+					}
+				}*/
 		}
 
 		if !db.DryRun {
