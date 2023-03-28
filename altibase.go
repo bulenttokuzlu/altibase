@@ -166,7 +166,8 @@ func (d Dialector) DataTypeOf(field *schema.Field) string {
 
 	switch field.DataType {
 	case schema.Bool, schema.Int, schema.Uint, schema.Float:
-		sqlType = "INTEGER"
+		sqlType = "NUMBER"
+		//		sqlType = "INTEGER"
 
 		switch {
 		case field.DataType == schema.Float:
