@@ -73,7 +73,7 @@ func Create(db *gorm.DB) {
 			stmt.Build("MERGE", "WHEN MATCHED", "WHEN NOT MATCHED")
 		} else {
 			stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
-			/*stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
+			stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
 
 			if hasDefaultValues {
 				stmt.AddClauseIfNotExists(clause.Returning{
@@ -92,7 +92,7 @@ func Create(db *gorm.DB) {
 					boundVars[field.Name] = len(stmt.Vars)
 					stmt.AddVar(stmt, sql.Out{Dest: reflect.New(field.FieldType).Interface()})
 				}
-			}*/
+			}
 		}
 
 		if !db.DryRun {
