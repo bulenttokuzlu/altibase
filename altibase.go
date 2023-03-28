@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/bulenttokuzlu/alticli"
+	"github.com/thoas/go-funk"
 	"gorm.io/gorm"
 	"gorm.io/gorm/callbacks"
 	"gorm.io/gorm/clause"
+	"gorm.io/gorm/logger"
 	"gorm.io/gorm/migrator"
 	"gorm.io/gorm/schema"
 	"gorm.io/gorm/utils"
@@ -142,8 +144,7 @@ func (d Dialector) QuoteTo(writer clause.Writer, str string) {
 var numericPlaceholder = regexp.MustCompile(`:(\d+)`)
 
 func (d Dialector) Explain(sql string, vars ...interface{}) string {
-	return "?"
-	/*return logger.ExplainSQL(sql, numericPlaceholder, `'`, funk.Map(vars, func(v interface{}) interface{} {
+	return logger.ExplainSQL(sql, numericPlaceholder, `'`, funk.Map(vars, func(v interface{}) interface{} {
 		switch v := v.(type) {
 		case bool:
 			if v {
@@ -153,7 +154,7 @@ func (d Dialector) Explain(sql string, vars ...interface{}) string {
 		default:
 			return v
 		}
-	}).([]interface{})...)*/
+	}).([]interface{})...)
 }
 
 func (d Dialector) DataTypeOf(field *schema.Field) string {
