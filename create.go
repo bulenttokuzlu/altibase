@@ -17,7 +17,7 @@ import (
 func Create(db *gorm.DB) {
 	stmt := db.Statement
 	schema := stmt.Schema
-	boundVars := make(map[string]int)
+	//boundVars := make(map[string]int)
 
 	if stmt == nil || schema == nil {
 		return
