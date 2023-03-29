@@ -2,8 +2,7 @@ package altibase
 
 import (
 	"bytes"
-	"context"
-	"database/sql"
+	"fmt"
 	"reflect"
 
 	funk "github.com/thoas/go-funk"
@@ -24,7 +23,7 @@ func Create(db *gorm.DB) {
 		return
 	}
 
-	hasDefaultValues := len(schema.FieldsWithDefaultDBValue) > 0
+	//hasDefaultValues := len(schema.FieldsWithDefaultDBValue) > 0
 
 	if !stmt.Unscoped {
 		for _, c := range schema.CreateClauses {
@@ -75,26 +74,23 @@ func Create(db *gorm.DB) {
 			stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
 			stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
 
-			if hasDefaultValues {
+			/*if hasDefaultValues {
 				stmt.AddClauseIfNotExists(clause.Returning{
 					Columns: funk.Map(schema.FieldsWithDefaultDBValue, func(field *gormSchema.Field) clause.Column {
 						return clause.Column{Name: field.DBName}
 					}).([]clause.Column),
 				})
-			}
+			}*/
 			stmt.Build("INSERT", "VALUES")
 			/*			stmt.Build("INSERT", "VALUES", "RETURNING")
 						if hasDefaultValues {
 							stmt.WriteString(" INTO ")
-							fmt.Println("6.1-", stmt.SQL.String())
 							for idx, field := range schema.FieldsWithDefaultDBValue {
 								if idx > 0 {
 									stmt.WriteByte(',')
-									fmt.Println("6.2x-", stmt.SQL.String())
 								}
 								boundVars[field.Name] = len(stmt.Vars)
 								stmt.AddVar(stmt, sql.Out{Dest: reflect.New(field.FieldType).Interface()})
-								fmt.Println("6.3-", stmt.SQL.String())
 							}
 						}*/
 		}
@@ -120,7 +116,7 @@ func Create(db *gorm.DB) {
 				// BIG BUG: what if any of the transactions failed? some result might already be inserted that altibase is so
 				// sneaky that some transaction inserts will exceed the buffer and so will be pushed at unknown point,
 				// resulting in dangling row entries, so we might need to delete them if an error happens
-
+				fmt.Println("stmt.SQL.String() = ", stmt.SQL.String())
 				switch result, err := stmt.ConnPool.ExecContext(stmt.Context, stmt.SQL.String(), stmt.Vars...); err {
 				case nil: // success
 					db.RowsAffected, _ = result.RowsAffected()
@@ -131,7 +127,7 @@ func Create(db *gorm.DB) {
 						insertTo = insertTo.Index(idx)
 					}
 
-					if hasDefaultValues {
+					/*if hasDefaultValues {
 						// bind returning value back to reflected value in the respective fields
 						funk.ForEach(
 							funk.Filter(schema.FieldsWithDefaultDBValue, func(field *gormSchema.Field) bool {
@@ -149,7 +145,7 @@ func Create(db *gorm.DB) {
 								}
 							},
 						)
-					}
+					}*/
 				default: // failure
 					db.AddError(err)
 				}
