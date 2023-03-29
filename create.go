@@ -116,6 +116,7 @@ func Create(db *gorm.DB) {
 				// BIG BUG: what if any of the transactions failed? some result might already be inserted that altibase is so
 				// sneaky that some transaction inserts will exceed the buffer and so will be pushed at unknown point,
 				// resulting in dangling row entries, so we might need to delete them if an error happens
+				fmt.Println("idx = ", idx)
 				fmt.Println("stmt.SQL.String() = ", stmt.SQL.String())
 				switch result, err := stmt.ConnPool.ExecContext(stmt.Context, stmt.SQL.String(), stmt.Vars...); err {
 				case nil: // success
