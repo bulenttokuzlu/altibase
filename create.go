@@ -1,17 +1,12 @@
 package altibase
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 
-	funk "github.com/thoas/go-funk"
 	"gorm.io/gorm"
 	"gorm.io/gorm/callbacks"
 	"gorm.io/gorm/clause"
-	gormSchema "gorm.io/gorm/schema"
-
-	"github.com/bulenttokuzlu/altibase/clauses"
 )
 
 func Create(db *gorm.DB) {
@@ -26,19 +21,25 @@ func Create(db *gorm.DB) {
 	//hasDefaultValues := len(schema.FieldsWithDefaultDBValue) > 0
 
 	if !stmt.Unscoped {
+		fmt.Println("!stmt.Unscoped")
 		for _, c := range schema.CreateClauses {
+			fmt.Printf("%v\n", c)
 			stmt.AddClause(c)
+			fmt.Println("range schema.CreateClauses - stmt.SQL.String() - ", stmt.SQL.String())
 		}
 	}
 
 	if stmt.SQL.String() == "" {
+		fmt.Println("stmt.SQL.String() == \"\"")
 		values := callbacks.ConvertToCreateValues(stmt)
-		onConflict, hasConflict := stmt.Clauses["ON CONFLICT"].Expression.(clause.OnConflict)
+		fmt.Println("callbacks.ConvertToCreateValues(stmt) - stmt.SQL.String() - ", stmt.SQL.String())
+		/*onConflict, hasConflict := stmt.Clauses["ON CONFLICT"].Expression.(clause.OnConflict)
 		// are all columns in value the primary fields in schema only?
 		if hasConflict && funk.Contains(
 			funk.Map(values.Columns, func(c clause.Column) string { return c.Name }),
 			funk.Map(schema.PrimaryFields, func(field *gormSchema.Field) string { return field.DBName }),
 		) {
+			fmt.Println("hasConflict && funk.Contains")
 			stmt.AddClauseIfNotExists(clauses.Merge{
 				Using: []clause.Interface{
 					clause.Select{
@@ -70,30 +71,33 @@ func Create(db *gorm.DB) {
 			stmt.AddClauseIfNotExists(clauses.WhenNotMatched{Values: values})
 
 			stmt.Build("MERGE", "WHEN MATCHED", "WHEN NOT MATCHED")
-		} else {
-			stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
-			stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
+		} else {*/
+		stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
+		fmt.Println("stmt.AddClauseIfNotExists - stmt.SQL.String() - ", stmt.SQL.String())
+		stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
+		fmt.Println("stmt.AddClause - stmt.SQL.String() - ", stmt.SQL.String())
 
-			/*if hasDefaultValues {
-				stmt.AddClauseIfNotExists(clause.Returning{
-					Columns: funk.Map(schema.FieldsWithDefaultDBValue, func(field *gormSchema.Field) clause.Column {
-						return clause.Column{Name: field.DBName}
-					}).([]clause.Column),
-				})
-			}*/
-			stmt.Build("INSERT", "VALUES")
-			/*			stmt.Build("INSERT", "VALUES", "RETURNING")
-						if hasDefaultValues {
-							stmt.WriteString(" INTO ")
-							for idx, field := range schema.FieldsWithDefaultDBValue {
-								if idx > 0 {
-									stmt.WriteByte(',')
-								}
-								boundVars[field.Name] = len(stmt.Vars)
-								stmt.AddVar(stmt, sql.Out{Dest: reflect.New(field.FieldType).Interface()})
+		/*if hasDefaultValues {
+			stmt.AddClauseIfNotExists(clause.Returning{
+				Columns: funk.Map(schema.FieldsWithDefaultDBValue, func(field *gormSchema.Field) clause.Column {
+					return clause.Column{Name: field.DBName}
+				}).([]clause.Column),
+			})
+		}*/
+		stmt.Build("INSERT", "VALUES")
+		fmt.Println("stmt.Build - stmt.SQL.String() - ", stmt.SQL.String())
+		/*			stmt.Build("INSERT", "VALUES", "RETURNING")
+					if hasDefaultValues {
+						stmt.WriteString(" INTO ")
+						for idx, field := range schema.FieldsWithDefaultDBValue {
+							if idx > 0 {
+								stmt.WriteByte(',')
 							}
-						}*/
-		}
+							boundVars[field.Name] = len(stmt.Vars)
+							stmt.AddVar(stmt, sql.Out{Dest: reflect.New(field.FieldType).Interface()})
+						}
+					}*/
+		//}
 
 		if !db.DryRun {
 			for idx, vals := range values.Values {
