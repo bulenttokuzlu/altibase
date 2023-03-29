@@ -2,159 +2,61 @@ package altibase
 
 import (
 	"fmt"
+	"gorm.io/gorm/clause"
 	"reflect"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/callbacks"
-	"gorm.io/gorm/clause"
 )
 
 func Create(db *gorm.DB) {
 	stmt := db.Statement
 	schema := stmt.Schema
-	//boundVars := make(map[string]int)
 
 	if stmt == nil || schema == nil {
 		return
 	}
 
-	//hasDefaultValues := len(schema.FieldsWithDefaultDBValue) > 0
+	fmt.Println("stmt.SQL.String() == \"\"")
+	values := callbacks.ConvertToCreateValues(stmt)
+	fmt.Println("callbacks.ConvertToCreateValues(stmt) - stmt.SQL.String() - ", stmt.SQL.String())
+	stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
+	fmt.Println("stmt.AddClauseIfNotExists - stmt.SQL.String() - ", stmt.SQL.String())
+	stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
+	fmt.Println("stmt.AddClause - stmt.SQL.String() - ", stmt.SQL.String())
+	stmt.Build("INSERT", "VALUES")
+	fmt.Println("stmt.Build - stmt.SQL.String() - ", stmt.SQL.String())
 
-	if !stmt.Unscoped {
-		fmt.Println("!stmt.Unscoped")
-		for _, c := range schema.CreateClauses {
-			fmt.Printf("%v\n", c)
-			stmt.AddClause(c)
-			fmt.Println("range schema.CreateClauses - stmt.SQL.String() - ", stmt.SQL.String())
-		}
-	}
-
-	if stmt.SQL.String() == "" {
-		fmt.Println("stmt.SQL.String() == \"\"")
-		values := callbacks.ConvertToCreateValues(stmt)
-		fmt.Println("callbacks.ConvertToCreateValues(stmt) - stmt.SQL.String() - ", stmt.SQL.String())
-		/*onConflict, hasConflict := stmt.Clauses["ON CONFLICT"].Expression.(clause.OnConflict)
-		// are all columns in value the primary fields in schema only?
-		if hasConflict && funk.Contains(
-			funk.Map(values.Columns, func(c clause.Column) string { return c.Name }),
-			funk.Map(schema.PrimaryFields, func(field *gormSchema.Field) string { return field.DBName }),
-		) {
-			fmt.Println("hasConflict && funk.Contains")
-			stmt.AddClauseIfNotExists(clauses.Merge{
-				Using: []clause.Interface{
-					clause.Select{
-						Columns: funk.Map(values.Columns, func(column clause.Column) clause.Column {
-							// HACK: I can not come up with a better alternative for now
-							// I want to add a value to the list of variable and then capture the bind variable position as well
-							buf := bytes.NewBufferString("")
-							stmt.Vars = append(stmt.Vars, values.Values[0][funk.IndexOf(values.Columns, column)])
-							stmt.BindVarTo(buf, stmt, nil)
-
-							column.Alias = column.Name
-							// then the captured bind var will be the name
-							column.Name = buf.String()
-							return column
-						}).([]clause.Column),
-					},
-					clause.From{
-						Tables: []clause.Table{{Name: db.Dialector.(Dialector).DummyTableName()}},
-					},
-				},
-				On: funk.Map(schema.PrimaryFields, func(field *gormSchema.Field) clause.Expression {
-					return clause.Eq{
-						Column: clause.Column{Table: stmt.Table, Name: field.DBName},
-						Value:  clause.Column{Table: clauses.MergeDefaultExcludeName(), Name: field.DBName},
+	if !db.DryRun {
+		fmt.Println("len(values.Values) = ", len(values.Values))
+		for idx, vals := range values.Values {
+			// HACK HACK: replace values one by one, assuming its value layout will be the same all the time, i.e. aligned
+			for idx, val := range vals {
+				switch v := val.(type) {
+				case bool:
+					if v {
+						val = 1
+					} else {
+						val = 0
 					}
-				}).([]clause.Expression),
-			})
-			stmt.AddClauseIfNotExists(clauses.WhenMatched{Set: onConflict.DoUpdates})
-			stmt.AddClauseIfNotExists(clauses.WhenNotMatched{Values: values})
-
-			stmt.Build("MERGE", "WHEN MATCHED", "WHEN NOT MATCHED")
-		} else {*/
-		stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
-		fmt.Println("stmt.AddClauseIfNotExists - stmt.SQL.String() - ", stmt.SQL.String())
-		stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
-		fmt.Println("stmt.AddClause - stmt.SQL.String() - ", stmt.SQL.String())
-
-		/*if hasDefaultValues {
-			stmt.AddClauseIfNotExists(clause.Returning{
-				Columns: funk.Map(schema.FieldsWithDefaultDBValue, func(field *gormSchema.Field) clause.Column {
-					return clause.Column{Name: field.DBName}
-				}).([]clause.Column),
-			})
-		}*/
-		stmt.Build("INSERT", "VALUES")
-		fmt.Println("stmt.Build - stmt.SQL.String() - ", stmt.SQL.String())
-		/*			stmt.Build("INSERT", "VALUES", "RETURNING")
-					if hasDefaultValues {
-						stmt.WriteString(" INTO ")
-						for idx, field := range schema.FieldsWithDefaultDBValue {
-							if idx > 0 {
-								stmt.WriteByte(',')
-							}
-							boundVars[field.Name] = len(stmt.Vars)
-							stmt.AddVar(stmt, sql.Out{Dest: reflect.New(field.FieldType).Interface()})
-						}
-					}*/
-		//}
-
-		if !db.DryRun {
-			for idx, vals := range values.Values {
-				// HACK HACK: replace values one by one, assuming its value layout will be the same all the time, i.e. aligned
-				for idx, val := range vals {
-					switch v := val.(type) {
-					case bool:
-						if v {
-							val = 1
-						} else {
-							val = 0
-						}
-					}
-
-					stmt.Vars[idx] = val
 				}
-				// and then we insert each row one by one then put the returning values back (i.e. last return id => smart insert)
-				// we keep track of the index so that the sub-reflected value is also correct
+				stmt.Vars[idx] = val
+			}
+			fmt.Println("idx = ", idx)
+			//fmt.Println("stmt.SQL.String() = ", stmt.SQL.String())
+			switch result, err := stmt.ConnPool.ExecContext(stmt.Context, stmt.SQL.String(), stmt.Vars...); err {
+			case nil: // success
+				db.RowsAffected, _ = result.RowsAffected()
 
-				// BIG BUG: what if any of the transactions failed? some result might already be inserted that altibase is so
-				// sneaky that some transaction inserts will exceed the buffer and so will be pushed at unknown point,
-				// resulting in dangling row entries, so we might need to delete them if an error happens
-				fmt.Println("idx = ", idx)
-				fmt.Println("stmt.SQL.String() = ", stmt.SQL.String())
-				switch result, err := stmt.ConnPool.ExecContext(stmt.Context, stmt.SQL.String(), stmt.Vars...); err {
-				case nil: // success
-					db.RowsAffected, _ = result.RowsAffected()
-
-					insertTo := stmt.ReflectValue
-					switch insertTo.Kind() {
-					case reflect.Slice, reflect.Array:
-						insertTo = insertTo.Index(idx)
-					}
-
-					/*if hasDefaultValues {
-						// bind returning value back to reflected value in the respective fields
-						funk.ForEach(
-							funk.Filter(schema.FieldsWithDefaultDBValue, func(field *gormSchema.Field) bool {
-								return funk.Contains(boundVars, field.Name)
-							}),
-							func(field *gormSchema.Field) {
-								switch insertTo.Kind() {
-								case reflect.Struct:
-									ctx := context.Background()
-									if err = field.Set(ctx, insertTo, stmt.Vars[boundVars[field.Name]].(sql.Out).Dest); err != nil {
-										db.AddError(err)
-									}
-								case reflect.Map:
-									// todo 设置id的值
-								}
-							},
-						)
-					}*/
-				default: // failure
-					db.AddError(err)
+				insertTo := stmt.ReflectValue
+				switch insertTo.Kind() {
+				case reflect.Slice, reflect.Array:
+					insertTo = insertTo.Index(idx)
 				}
+			default: // failure
+				db.AddError(err)
 			}
 		}
+
 	}
 }
