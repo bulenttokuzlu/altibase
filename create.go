@@ -1,7 +1,6 @@
 package altibase
 
 import (
-	"github.com/bulenttokuzlu/altibase/clauses"
 	"gorm.io/gorm/clause"
 	"reflect"
 
@@ -19,9 +18,10 @@ func Create(db *gorm.DB) {
 
 	values := callbacks.ConvertToCreateValues(stmt)
 	stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
-	stmt.AddClauseIfNotExists(clauses.SelectUnion{Columns: values.Columns, Values: values.Values})
-	//	stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
-	stmt.Build("INSERT", "SELECT_UNION")
+	stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
+	stmt.Build("INSERT", "VALUES")
+	//stmt.AddClauseIfNotExists(clauses.SelectUnion{Columns: values.Columns, Values: values.Values})
+	//	stmt.Build("INSERT", "SELECT_UNION")
 
 	if !db.DryRun {
 		for idx, vals := range values.Values {
