@@ -2,6 +2,7 @@ package altibase
 
 import (
 	"fmt"
+	"github.com/bulenttokuzlu/altibase/clauses"
 	"gorm.io/gorm/clause"
 	"reflect"
 
@@ -17,14 +18,12 @@ func Create(db *gorm.DB) {
 		return
 	}
 
-	fmt.Println("stmt.SQL.String() == \"\"")
 	values := callbacks.ConvertToCreateValues(stmt)
-	fmt.Println("callbacks.ConvertToCreateValues(stmt) - stmt.SQL.String() - ", stmt.SQL.String())
 	stmt.AddClauseIfNotExists(clause.Insert{Table: clause.Table{Name: stmt.Table}})
-	fmt.Println("stmt.AddClauseIfNotExists - stmt.SQL.String() - ", stmt.SQL.String())
-	stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
-	fmt.Println("stmt.AddClause - stmt.SQL.String() - ", stmt.SQL.String())
-	stmt.Build("INSERT", "SELECT")
+	stmt.AddClauseIfNotExists(clauses.SelectUnion{Columns: values.Columns, Values: values.Values})
+	//	stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
+
+	stmt.Build("INSERT", "SELECT_UNION")
 	fmt.Println("stmt.Build - stmt.SQL.String() - ", stmt.SQL.String())
 
 	if !db.DryRun {
