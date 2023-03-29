@@ -24,7 +24,7 @@ func Create(db *gorm.DB) {
 	fmt.Println("stmt.AddClauseIfNotExists - stmt.SQL.String() - ", stmt.SQL.String())
 	stmt.AddClause(clause.Values{Columns: values.Columns, Values: [][]interface{}{values.Values[0]}})
 	fmt.Println("stmt.AddClause - stmt.SQL.String() - ", stmt.SQL.String())
-	stmt.Build("INSERT", "VALUES")
+	stmt.Build("INSERT", "SELECT")
 	fmt.Println("stmt.Build - stmt.SQL.String() - ", stmt.SQL.String())
 
 	if !db.DryRun {
